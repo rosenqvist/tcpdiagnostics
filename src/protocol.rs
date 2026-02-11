@@ -1,4 +1,5 @@
 pub const FRAME_LEN: usize = 16;
+pub const NONCE_TAG: u64 = 0xAABBCCDD;
 
 pub fn encode_frame(seq: u64, nonce: u64) -> [u8; FRAME_LEN] {
     let mut buf = [0u8; FRAME_LEN];
@@ -19,16 +20,14 @@ pub fn decode_frame(buf: &[u8; FRAME_LEN]) -> (u64, u64) {
 #[cfg(test)]
 mod tests {
     use super::*;
-
     #[test]
     fn frame_roundtrip() {
         let seq = 42u64;
-        let nonce = 0xAABBCCDDu64; //0xAA 0xBB 0xCC 0xDD
 
-        let buf = encode_frame(seq, nonce);
+        let buf = encode_frame(seq, NONCE_TAG);
         let (decoded_seq, decoded_nonce) = decode_frame(&buf);
 
         assert_eq!(seq, decoded_seq);
-        assert_eq!(nonce, decoded_nonce);
+        assert_eq!(NONCE_TAG, decoded_nonce);
     }
 }
