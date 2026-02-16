@@ -1,12 +1,16 @@
 use std::io::{self, Read, Write};
 use std::net::TcpStream;
-use std::time::Instant;
+use std::time::{Duration, Instant};
+
 
 use crate::metrics::{RttMetrics, compute_rtt_metrics};
 use crate::protocol::{FRAME_LEN, decode_frame, encode_frame, NONCE_TAG};
 
 pub fn run_rtt(target: &str, count: u32) -> io::Result<RttMetrics> {
     let mut stream = TcpStream::connect(target)?;
+
+    stream.set_read_timeout(Some(Duration::from_secs(2)))?;
+    stream.set_write_timeout(Some(Duration::from_secs(2)))?;
 
     // Disable Nagle’s algorithm.
     // Without this, TCP may buffer small writes to coalesce packets,

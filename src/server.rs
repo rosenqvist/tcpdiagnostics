@@ -30,6 +30,8 @@ pub fn run_server(bind_addr: &str) -> io::Result<()> {
 }
 
 fn handle_client(mut stream: TcpStream) -> io::Result<()> {
+    stream.set_nodelay(true)?;
+
     let mut buf = [0u8; FRAME_LEN];
 
     loop {
