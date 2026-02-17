@@ -2,9 +2,9 @@
 pub struct RttMetrics {
     pub sent: u32,
     pub received: u32,
-    pub min_ms: f64,
-    pub avg_ms: f64,
-    pub max_ms: f64,
+    pub min_ms: Option<f64>,
+    pub avg_ms: Option<f64>,
+    pub max_ms: Option<f64>,
 }
 
 pub fn compute_rtt_metrics(samples_ms: &[f64], sent: u32) -> RttMetrics {
@@ -14,9 +14,9 @@ pub fn compute_rtt_metrics(samples_ms: &[f64], sent: u32) -> RttMetrics {
         return RttMetrics {
             sent,
             received,
-            min_ms: 0.0,
-            avg_ms: 0.0,
-            max_ms: 0.0,
+            min_ms: None,
+            avg_ms: None,
+            max_ms: None,
         };
     }
 
@@ -39,9 +39,9 @@ pub fn compute_rtt_metrics(samples_ms: &[f64], sent: u32) -> RttMetrics {
     RttMetrics {
         sent,
         received,
-        min_ms: min,
-        avg_ms: avg,
-        max_ms: max,
+        min_ms: Some(min),
+        avg_ms: Some(avg),
+        max_ms: Some(max),
     }
 }
 
@@ -56,8 +56,8 @@ mod tests {
 
         assert_eq!(metrics.sent, 3);
         assert_eq!(metrics.received, 3);
-        assert_eq!(metrics.min_ms, 10.0);
-        assert_eq!(metrics.max_ms, 30.0);
-        assert_eq!(metrics.avg_ms, 20.0);
+        assert_eq!(metrics.min_ms, Some(10.0));
+        assert_eq!(metrics.max_ms, Some(30.0));
+        assert_eq!(metrics.avg_ms, Some(20.0));
     }
 }

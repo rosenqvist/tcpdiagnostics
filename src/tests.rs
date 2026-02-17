@@ -29,12 +29,16 @@ mod tests {
 
         let metrics = run_rtt(&addr.to_string(), 50).unwrap();
 
+        let min = metrics.min_ms.expect("expected min_ms value to exist");
+        let avg = metrics.avg_ms.expect("expected avg_ms value to exist");
+        let max = metrics.max_ms.expect("expected max_ms value to exist");
+
         assert_eq!(metrics.sent, 50);
         assert_eq!(metrics.received, 50);
-        assert!(metrics.min_ms >= 0.0);
-        assert!(metrics.max_ms >= metrics.min_ms);
-        assert!(metrics.avg_ms >= metrics.min_ms);
-        assert!(metrics.avg_ms <= metrics.max_ms);
+        assert!(min >= 0.0);
+        assert!(max >= min);
+        assert!(avg >= min);
+        assert!(avg <= max);
 
         server_handle.join().unwrap();
     }

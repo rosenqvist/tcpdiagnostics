@@ -12,6 +12,15 @@ fn main() {
     }
 }
 
+//helper function for match printing & formatting
+//format! returns a string, for "None" we also return a string to keep compiler happy
+fn fmt_ms(v: Option<f64>) -> String {
+    match v {
+        Some(x) => format!("{:.3} ms", x),
+        None => "N/A".to_string(),
+    }
+}
+
 fn run() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().collect();
 
@@ -24,16 +33,17 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         let target = &args[2];
 
         // give meaningful error message here
-        let count: u32 = args[4].parse()
+        let count: u32 = args[4]
+            .parse()
             .map_err(|_| format!("invalid count '{}', expected a u32", args[4]))?;
 
         let m = client::run_rtt(target, count)?;
 
         println!("sent:     {}", m.sent);
         println!("received: {}", m.received);
-        println!("min_ms:   {:.3}", m.min_ms);
-        println!("avg_ms:   {:.3}", m.avg_ms);
-        println!("max_ms:   {:.3}", m.max_ms);
+        println!("min: {}", fmt_ms(m.min_ms));
+        println!("avg: {}", fmt_ms(m.avg_ms));
+        println!("max: {}", fmt_ms(m.max_ms));
         return Ok(());
     }
 
