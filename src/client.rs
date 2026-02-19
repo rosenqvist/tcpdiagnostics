@@ -1,9 +1,10 @@
 use std::io::{self, Read, Write};
-use std::net::TcpStream;
+use std::net::{TcpStream, ToSocketAddrs};
 use std::time::{Duration, Instant};
 
 use crate::metrics::{RttMetrics, compute_rtt_metrics};
 use crate::protocol::{FRAME_LEN, NONCE_TAG, decode_frame, encode_frame};
+use crate::report::DiagnosticReport;
 
 pub fn run_rtt(target: &str, count: u32) -> io::Result<RttMetrics> {
     let mut stream = TcpStream::connect(target)?;
@@ -55,4 +56,52 @@ pub fn run_rtt(target: &str, count: u32) -> io::Result<RttMetrics> {
     }
 
     Ok(compute_rtt_metrics(&samples_ms, count))
+}
+
+fn measure_connect_ms(target: &str, timeout: Duration) -> io::Result<f64> {
+    // connect_timeout requires a SocketAddr, so resolve it first.
+    let mut addrs = target.to_socket_addrs()?;
+    let addr = addrs.next().ok_or_else(|| {
+        io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "target resolved to no addresses",
+        )
+    })?;
+
+    let start = Instant::now();
+    let _stream = TcpStream::connect_timeout(&addr, timeout)?;
+    Ok(start.elapsed().as_secs_f64() * 1000.0)
+}
+
+pub fn run_diagnose(target: &str, count: u32) -> io::Result<DiagnosticReport> {
+    let mut warnings: Vec<String> = Vec::new();
+
+    // 1) Measure the connect time
+    let connect_ms = match measure_connect_ms(target, Duration::from_secs(2)) {
+        Ok(ms) => Some(ms),
+        Err(e) => {
+            warnings.push(format!("connect failed: {}", e));
+            None
+        }
+    };
+
+    // 2) Run RTT if connect worked (or RTT will fail too)
+    let rtt = if connect_ms.is_some() {
+        match run_rtt(target, count) {
+            Ok(m) => Some(m),
+            Err(e) => {
+                warnings.push(format!("rtt failed: {}", e));
+                None
+            }
+        }
+    } else {
+        None
+    };
+
+    Ok(DiagnosticReport {
+        target: target.to_string(),
+        connect_ms,
+        rtt,
+        warnings,
+    })
 }

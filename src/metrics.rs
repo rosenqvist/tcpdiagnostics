@@ -1,4 +1,5 @@
-#[derive(Debug, Clone)]
+use serde::Serialize;
+#[derive(Debug, Clone, Serialize)]
 pub struct RttMetrics {
     pub sent: u32,
     pub received: u32,
