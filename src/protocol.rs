@@ -11,8 +11,8 @@ pub fn encode_frame(seq: u64, nonce: u64) -> [u8; FRAME_LEN] {
 }
 
 pub fn decode_frame(buf: &[u8; FRAME_LEN]) -> (u64, u64) {
-    let seq = u64::from_be_bytes(buf[0..8].try_into().unwrap());
-    let nonce = u64::from_be_bytes(buf[8..16].try_into().unwrap());
+    let seq = u64::from_be_bytes(buf[0..8].try_into().expect("FRAME_LEN must be 16"));
+    let nonce = u64::from_be_bytes(buf[8..16].try_into().expect("FRAME_LEN must be 16"));
 
     (seq, nonce)
 }
